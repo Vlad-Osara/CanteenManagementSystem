@@ -1,0 +1,200 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+
+/* Custom CSS Variables */
+:root {
+  --canteen-primary: #0284c7;
+  --canteen-primary-hover: #0369a1;
+  --canteen-primary-light: #e0f2fe;
+  --canteen-primary-subtle: #f0f9ff;
+  --canteen-accent: #38bdf8;
+  --canteen-bg: #f8fafc;
+  --canteen-card-bg: #ffffff;
+  --canteen-text: #0f172a;
+  --canteen-text-muted: #64748b;
+  --canteen-border: #e2e8f0;
+  --canteen-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08), 0 8px 10px -6px rgba(2, 132, 199, 0.04);
+  --canteen-shadow-hover: 0 20px 30px -10px rgba(2, 132, 199, 0.15), 0 10px 12px -5px rgba(2, 132, 199, 0.08);
+}
+
+/* Body Styles */
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--canteen-bg);
+  color: var(--canteen-text);
+  /* Set minimum height to full viewport */
+  min-height: 100vh;
+  /* Align items vertically */
+  display: flex;
+  flex-direction: column; 
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Light Blue Navbar */
+.navbar-canteen {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.2);
+}
+
+.navbar-canteen .navbar-brand {
+  font-weight: 800;
+  color: #ffffff !important;
+  /* Letter spacing for better readability */
+  letter-spacing: -0.5px;
+}
+
+.navbar-canteen .nav-link {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  /* Add smooth transition for hover effects */
+  transition: all 0.2s ease;
+}
+
+/* Hover and Active States */
+.navbar-canteen .nav-link:hover,
+.navbar-canteen .nav-link.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.18);
+  /* Add backdrop filter for glass effect */
+  backdrop-filter: blur(8px);
+}
+
+/* Custom Cards */
+.card-canteen {
+  background-color: var(--canteen-card-bg);
+  border: 1px solid var(--canteen-border);
+  border-radius: 1rem;
+  box-shadow: var(--canteen-shadow);
+  /* Pop up effect on hover */
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-canteen:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--canteen-shadow-hover);
+}
+
+/* Custom Light Blue Buttons for Primary Actions */
+.btn-canteen-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-canteen-primary:hover,
+.btn-canteen-primary:focus {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+/* Custom Light Blue Buttons for Secondary Actions */
+.btn-canteen-light {
+  background-color: var(--canteen-primary-light);
+  color: var(--canteen-primary-hover);
+  border: 1px solid rgba(2, 132, 199, 0.15);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-canteen-light:hover {
+  background-color: #bae6fd;
+  color: #075985;
+}
+
+/* Badge colors */
+.badge-soft-primary {
+  background-color: var(--canteen-primary-light);
+  color: #0369a1;
+  font-weight: 600;
+}
+
+/* Badge for Success */
+.badge-soft-success {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+}
+
+/* Badge for Warning */
+.badge-soft-warning {
+  background-color: #fef9c3;
+  color: #a16207;
+  font-weight: 600;
+}
+
+/* Badge for Danger */
+.badge-soft-danger {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* Badge for Info */
+.badge-soft-info {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  font-weight: 600;
+}
+
+/* Header Banner */
+.canteen-banner {
+  background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
+  border-bottom: 1px solid #bae6fd;
+  border-radius: 1.25rem;
+}
+
+/* Modal and Offcanvas polish */
+.modal-content, .offcanvas {
+  border-radius: 1.25rem;
+  border: none;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header, .offcanvas-header {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-bottom: 1px solid #bae6fd;
+}
+
+/* Table styling */
+.table-canteen {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  /* Hide overflow to prevent content from spilling out */
+  overflow: hidden;
+}
+
+/* Table Header Styles */
+.table-canteen th {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Smooth Animations */
+/* Fade Transition  when components are entering or leaving */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
