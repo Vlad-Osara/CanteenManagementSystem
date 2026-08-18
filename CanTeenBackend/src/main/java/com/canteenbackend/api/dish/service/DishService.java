@@ -1,11 +1,10 @@
 package com.canteenbackend.api.dish.service;
 
 import com.canteenbackend.api.category.model.Category;
-import com.canteenbackend.api.category.repository.CategoryJpaRepository;
+import com.canteenbackend.api.category.repository.CategoryRepository;
 import com.canteenbackend.api.dish.dto.DishDTO;
 import com.canteenbackend.api.dish.mapper.DishMapper;
 import com.canteenbackend.api.dish.model.Dish;
-import com.canteenbackend.api.dish.repository.DishJpaRepository;
 import com.canteenbackend.api.dish.repository.DishRepository;
 import com.canteenbackend.api.dish.request.DishGetRequest;
 import com.canteenbackend.api.dish.request.DishStoreRequest;
@@ -13,7 +12,6 @@ import com.canteenbackend.api.dish.request.DishUpdateRequest;
 import com.canteenbackend.api.order.service.OrderNotificationService;
 import com.canteenbackend.exceptions.custom.BadRequestException;
 import com.canteenbackend.helper.base.construct.RestfullService;
-import com.canteenbackend.helper.base.repository.BaseRepository;
 import com.canteenbackend.helper.upload.image.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,8 +27,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DishService extends RestfullService<DishDTO, DishGetRequest, DishStoreRequest, DishUpdateRequest> {
-    private final BaseRepository<Category, UUID, CategoryJpaRepository> baseCategoryRepository;
-    private final BaseRepository<Dish, UUID, DishJpaRepository> baseRepository;
+    private final CategoryRepository categoryRepository;
     private final DishRepository dishRepository;
     private final DishMapper dishMapper;
     private final OrderNotificationService orderNotificationService;
@@ -45,7 +42,7 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
 
     @Override
     public DishDTO get(UUID id) {
-        return dishMapper.toDishDTO(baseRepository.get(id));
+        return dishMapper.toDishDTO(dishRepository.get(id));
     }
 
     @Override
@@ -55,7 +52,7 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
             duplicateErrors.put("Name", "Tên món ăn đã tồn tại");
             throw new BadRequestException("Thông tin đã tồn tại", duplicateErrors);
         }
-        Category category = baseCategoryRepository.get(dishStoreRequest.getCategoryId());
+        Category category = categoryRepository.get(dishStoreRequest.getCategoryId());
 
         Dish dish = Dish.builder()
                 .name(dishStoreRequest.getName())
@@ -65,14 +62,14 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
                 .imageUrl(dishStoreRequest.getImageUrl())
                 .category(category)
                 .build();
-        return dishMapper.toDishDTO(baseRepository.save(dish));
+        return dishMapper.toDishDTO(dishRepository.save(dish));
     }
 
     @Override
     @Transactional
     public DishDTO update(UUID id, DishUpdateRequest dishUpdateRequest) {
         //Lấy dữ liệu cũ trước khi cập nhật cho phần xóa ảnh trên cloudinary
-        Dish currentDish = baseRepository.get(id);
+        Dish currentDish = dishRepository.get(id);
         String oldImageUrl = currentDish.getImageUrl();
         String newImageUrl = dishUpdateRequest.getImageUrl();
 
@@ -92,10 +89,10 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
                 .imageUrl(dishUpdateRequest.getImageUrl())
                 .build();
         if (dishUpdateRequest.getCategoryId() != null) {
-            Category category = baseCategoryRepository.get(dishUpdateRequest.getCategoryId());
+            Category category = categoryRepository.get(dishUpdateRequest.getCategoryId());
             dish.setCategory(category);
         }
-        DishDTO updatedDish = dishMapper.toDishDTO(baseRepository.update(id, dish));
+        DishDTO updatedDish = dishMapper.toDishDTO(dishRepository.update(id, dish));
 
         //Xóa ảnh trên Cloudinary sau khi cập nhật trên database
         // Nếu quản trị viên tải lên ảnh mới khác với ảnh cũ -> Xóa ảnh cũ trên Cloudinary
@@ -108,8 +105,8 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
 
     @Override
     public DishDTO destroy(UUID id) {
-        Dish dish = baseRepository.get(id);
-        DishDTO deletedDish = dishMapper.toDishDTO(baseRepository.delete(id));
+        Dish dish = dishRepository.get(id);
+        DishDTO deletedDish = dishMapper.toDishDTO(dishRepository.delete(id));
         if (dish.getImageUrl() != null) {
             // Xóa luôn ảnh tương ứng trên Cloudinary sau khi món ăn bị xóa
             cloudinaryService.deleteImageByUrl(dish.getImageUrl());
@@ -119,10 +116,10 @@ public class DishService extends RestfullService<DishDTO, DishGetRequest, DishSt
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public DishDTO toggleAvailability(UUID id) {
-        Dish dish = baseRepository.get(id);
+        Dish dish = dishRepository.get(id);
         dish.setIsAvailable(!dish.getIsAvailable());
 
-        DishDTO updatedDishDTO = dishMapper.toDishDTO(baseRepository.update(id, dish));
+        DishDTO updatedDishDTO = dishMapper.toDishDTO(dishRepository.update(id, dish));
         orderNotificationService.notifyDishAvailability(updatedDishDTO);
 
         return updatedDishDTO;

@@ -7,7 +7,6 @@ import com.canteenbackend.api.order.mapper.OrderMapper;
 import com.canteenbackend.api.order.model.Order;
 import com.canteenbackend.api.order.model.OrderItem;
 import com.canteenbackend.api.order.model.OrderStatus;
-import com.canteenbackend.api.order.repository.OrderJpaRepository;
 import com.canteenbackend.api.order.repository.OrderRepository;
 import com.canteenbackend.api.order.request.OrderGetRequest;
 import com.canteenbackend.api.order.request.OrderItemRequest;
@@ -20,7 +19,6 @@ import com.canteenbackend.api.user.model.User;
 import com.canteenbackend.api.user.repository.UserRepository;
 import com.canteenbackend.exceptions.custom.BadRequestException;
 import com.canteenbackend.helper.base.construct.RestfullService;
-import com.canteenbackend.helper.base.repository.BaseRepository;
 import com.canteenbackend.utils.security.CustomUserDetails;
 import com.canteenbackend.utils.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -34,14 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService extends RestfullService<OrderDTO, OrderGetRequest, OrderStoreRequest, OrderUpdateRequest> {
-    private final BaseRepository<Order, UUID, OrderJpaRepository> baseRepository;
     private final OrderRepository orderRepository;
     private final DishRepository dishRepository;
     private final UserRepository userRepository;
@@ -60,7 +56,7 @@ public class OrderService extends RestfullService<OrderDTO, OrderGetRequest, Ord
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_STAFF"));
 
         if (isStaffOrAdmin) {
-            return baseRepository.getAll(pageable).map(orderMapper::toOrderDTO);
+            return orderRepository.getAll(pageable).map(orderMapper::toOrderDTO);
         } else {
             return orderRepository.findByCustomerId(customUserDetails.getId(), pageable).map(orderMapper::toOrderDTO);
         }
@@ -68,7 +64,7 @@ public class OrderService extends RestfullService<OrderDTO, OrderGetRequest, Ord
 
     @Override
     public OrderDTO get(UUID id) {
-        Order order = baseRepository.get(id);
+        Order order = orderRepository.get(id);
         CustomUserDetails customUserDetails = securityUtils.getCurrentUserDetails();
 
         boolean isStaffOrAdmin = customUserDetails.getAuthorities().stream()
@@ -158,7 +154,7 @@ public class OrderService extends RestfullService<OrderDTO, OrderGetRequest, Ord
             throw new AccessDeniedException("Không có quyền chỉnh sửa trạng thái đơn hàng!");
         }
 
-        Order currentOrder = baseRepository.get(id);
+        Order currentOrder = orderRepository.get(id);
         OrderStatus oldStatus = currentOrder.getStatus();
         OrderStatus newStatus = orderUpdateRequest.getStatus();
 

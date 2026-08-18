@@ -3,6 +3,7 @@ package com.canteenbackend.api.order.dto;
 import com.canteenbackend.api.order.model.OrderStatus;
 import com.canteenbackend.api.order.model.OrderType;
 import com.canteenbackend.helper.base.dto.BaseDTO;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -20,6 +21,7 @@ public class OrderDTO extends BaseDTO {
     private OrderStatus status;
     private OrderType type;
     private String note;
+    @Builder.Default
     private List<OrderItemDTO> orderItemDTO = new ArrayList<>();// EAGER
     private BigDecimal totalPrice;
 }

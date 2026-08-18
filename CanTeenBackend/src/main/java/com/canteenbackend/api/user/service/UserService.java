@@ -3,7 +3,6 @@ package com.canteenbackend.api.user.service;
 import com.canteenbackend.api.user.dto.UserDTO;
 import com.canteenbackend.api.user.mapper.UserMapper;
 import com.canteenbackend.api.user.model.User;
-import com.canteenbackend.api.user.repository.UserJpaRepository;
 import com.canteenbackend.api.user.repository.UserRepository;
 import com.canteenbackend.api.user.request.UserGetRequest;
 import com.canteenbackend.api.user.request.UserStoreRequest;
@@ -11,7 +10,6 @@ import com.canteenbackend.api.user.request.UserUpdateRequest;
 import com.canteenbackend.exceptions.custom.BadRequestException;
 import com.canteenbackend.helper.base.construct.RestfullService;
 import com.canteenbackend.helper.base.model.Role;
-import com.canteenbackend.helper.base.repository.BaseRepository;
 import com.canteenbackend.utils.security.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +29,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService extends RestfullService<UserDTO, UserGetRequest, UserStoreRequest, UserUpdateRequest> {
-    private final BaseRepository<User, UUID, UserJpaRepository> baseRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
@@ -44,14 +41,14 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
         if (userGetRequest.getRole() != null) {
             users = userRepository.findByRole(userGetRequest.getRole(), pageable);
         } else {
-            users = baseRepository.getAll(pageable);
+            users = userRepository.getAll(pageable);
         }
         return users.map(userMapper::toUserDTO);
     }
 
     @Override
     public UserDTO get(UUID id) {
-        return userMapper.toUserDTO(baseRepository.get(id));
+        return userMapper.toUserDTO(userRepository.get(id));
     }
 
     @Override
@@ -89,7 +86,7 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
                 .role(userStoreRequest.getRole())
                 .balance(BigDecimal.ZERO)
                 .build();
-        return userMapper.toUserDTO(baseRepository.save(user));
+        return userMapper.toUserDTO(userRepository.save(user));
     }
 
     @Override
@@ -97,7 +94,7 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
     public UserDTO update(UUID id, UserUpdateRequest userUpdateRequest) {
         // 1. Lấy thông tin kẻ đang thực hiện hành động (Admin hoặc chính User đó) và mục tiêu
         User actor = securityUtils.getCurrentUserEntity();
-        User targetUser = baseRepository.get(id);
+        User targetUser = userRepository.get(id);
 
         // Kiểm tra xem kẻ thực hiện có phải là ADMIN không
         boolean isAdmin = actor.getRole() == Role.ADMIN;
@@ -175,7 +172,7 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
         }
 
         // 5. Cập nhật bản ghi thông qua ID mục tiêu truyền vào từ URL
-        User updatedUser = baseRepository.update(id, targetUser);
+        User updatedUser = userRepository.update(id, targetUser);
         return userMapper.toUserDTO(updatedUser);
     }
 
@@ -196,10 +193,10 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
             throw new BadRequestException("Mật khẩu xác thực của admin không chính xác!");
         }
 
-        User targetUser = baseRepository.get(id);
+        User targetUser = userRepository.get(id);
         if (targetUser.getRole() == Role.ADMIN) {
             throw new BadRequestException("Không thể xóa tài khoản Quản trị viên (Admin) để đảm bảo an toàn hệ thống!");
         }
-        return userMapper.toUserDTO(baseRepository.delete(id));
+        return userMapper.toUserDTO(userRepository.delete(id));
     }
 }

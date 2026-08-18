@@ -16,42 +16,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public class UserRepository extends BaseRepository<User, UUID, UserJpaRepository> {
+public interface UserRepository extends BaseRepository<User, UUID> {
+    Optional<User> findByUsername(String username);
+    Boolean existsByUsername(String username);
+    Page<User> findByRole(Role role, Pageable pageable);
+    Optional<User> findByEmail(String email);
+    Boolean existsByEmail(String email);
 
-    public UserRepository(UserJpaRepository userJpaRepository) {
-        super(userJpaRepository, User.class);
-    }
+    @Query("SELECT u FROM User u WHERE u.username = :username OR u.email = :email OR u.phoneNumber = :phoneNumber")
+    List<User> findExistingUsers(@Param("username") String username,
+                                 @Param("email") String email,
+                                 @Param("phoneNumber") String phoneNumber);
 
-    public Optional<User> findByUsername(String username) {
+    @Modifying
+    @Query("UPDATE User u SET u.balance = u.balance - :amount WHERE u.id = :userId AND u.balance >= :amount")
+    int deductBalance(@Param("userId") UUID userId, @Param("amount") BigDecimal amount);
 
-        return repository.findByUsername(username);
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return repository.findByEmail(email);
-    }
-
-    public Boolean existsByEmail(String email) {
-        return repository.existsByEmail(email);
-    }
-
-    public List<User> findExistingUsers(String username, String email, String phoneNumber) {
-        return repository.findExistingUsers(username, email, phoneNumber);
-    }
-
-    public Boolean existsByUsername(String username) {
-        return repository.existsByUsername(username);
-    }
-
-    public Page<User> findByRole(Role role, Pageable pageable) {
-        return repository.findByRole(role, pageable);
-    }
-
-    public int deductBalance(UUID userId, BigDecimal amount) {
-        return repository.deductBalance(userId, amount);
-    }
-
-    public int addBalance(UUID userId, BigDecimal amount) {
-        return repository.addBalance(userId, amount);
-    }
+    @Modifying
+    @Query("UPDATE User u SET u.balance = u.balance + :amount WHERE u.id = :userId")
+    int addBalance(@Param("userId") UUID userId, @Param("amount") BigDecimal amount);
 }

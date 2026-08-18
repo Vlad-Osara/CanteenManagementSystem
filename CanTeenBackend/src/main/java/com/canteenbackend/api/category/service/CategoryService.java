@@ -3,7 +3,6 @@ package com.canteenbackend.api.category.service;
 import com.canteenbackend.api.category.dto.CategoryDTO;
 import com.canteenbackend.api.category.mapper.CategoryMapper;
 import com.canteenbackend.api.category.model.Category;
-import com.canteenbackend.api.category.repository.CategoryJpaRepository;
 import com.canteenbackend.api.category.repository.CategoryRepository;
 import com.canteenbackend.api.category.request.CategoryGetRequest;
 import com.canteenbackend.api.category.request.CategoryStoreRequest;
@@ -11,7 +10,6 @@ import com.canteenbackend.api.category.request.CategoryUpdateRequest;
 import com.canteenbackend.api.dish.repository.DishRepository;
 import com.canteenbackend.exceptions.custom.BadRequestException;
 import com.canteenbackend.helper.base.construct.RestfullService;
-import com.canteenbackend.helper.base.repository.BaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,23 +23,20 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CategoryService extends RestfullService<CategoryDTO, CategoryGetRequest, CategoryStoreRequest, CategoryUpdateRequest> {
-    private final BaseRepository<Category, UUID, CategoryJpaRepository> baseRepository;
     private final DishRepository dishRepository;
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-
-
     @Override
     public Page<CategoryDTO> getAll(CategoryGetRequest categoryGetRequest) {
         Pageable pageable = categoryGetRequest.toPageable();
-        Page<Category> categories = baseRepository.getAll(pageable);
+        Page<Category> categories = categoryRepository.getAll(pageable);
         return categories.map(categoryMapper::toCategoryDTO);
     }
 
     @Override
     public CategoryDTO get(UUID id) {
-        return categoryMapper.toCategoryDTO(baseRepository.get(id));
+        return categoryMapper.toCategoryDTO(categoryRepository.get(id));
     }
 
     @Override
@@ -55,7 +50,7 @@ public class CategoryService extends RestfullService<CategoryDTO, CategoryGetReq
                 .name(categoryStoreRequest.getName())
                 .description(categoryStoreRequest.getDescription())
                 .build();
-        return categoryMapper.toCategoryDTO(baseRepository.save(category));
+        return categoryMapper.toCategoryDTO(categoryRepository.save(category));
     }
 
     @Override
@@ -69,13 +64,13 @@ public class CategoryService extends RestfullService<CategoryDTO, CategoryGetReq
                 .name(categoryUpdateRequest.getName())
                 .description(categoryUpdateRequest.getDescription())
                 .build();
-        return categoryMapper.toCategoryDTO(baseRepository.update(id, category));
+        return categoryMapper.toCategoryDTO(categoryRepository.update(id, category));
     }
 
     @Override
     @Transactional
     public CategoryDTO destroy(UUID id) {
         dishRepository.deleteAllByCategoryId(id);
-        return categoryMapper.toCategoryDTO(baseRepository.delete(id));
+        return categoryMapper.toCategoryDTO(categoryRepository.delete(id));
     }
 }

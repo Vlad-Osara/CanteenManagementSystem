@@ -2,34 +2,25 @@ package com.canteenbackend.api.dish.repository;
 
 import com.canteenbackend.api.dish.model.Dish;
 import com.canteenbackend.helper.base.repository.BaseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class DishRepository extends BaseRepository<Dish, UUID, DishJpaRepository> {
-    public DishRepository(DishJpaRepository dishJpaRepository) {
-        super(dishJpaRepository, Dish.class);
-    }
+public interface DishRepository extends BaseRepository<Dish, UUID> {
+    List<Dish> findByCategoryId(UUID categoryId);
+    void deleteAllByCategoryId(UUID categoryId);
+    boolean existsByName(String name);
 
-    public List<Dish> findByCategoryId(UUID categoryId) {
-
-        return repository.findByCategoryId(categoryId);
-    }
-
-    public void deleteAllByCategoryId(UUID categoryId) {
-        repository.deleteAllByCategoryId(categoryId);
-    }
-
-    public boolean existsByName(String name) {
-        return repository.existsByName(name);
-    }
-
-    public Page<Dish> searchDishes(UUID categoryId, String search, Pageable pageable) {
-        return repository.searchDishes(categoryId, search, pageable);
-    }
+    @Query("SELECT d FROM Dish d WHERE " +
+            "(:categoryId IS NULL OR d.category.id = :categoryId) AND " +
+            "(:search IS NULL OR :search = '' OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Dish> searchDishes(@Param("categoryId") UUID categoryId,
+                            @Param("search") String search,
+                            Pageable pageable);
 }
