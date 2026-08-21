@@ -14,6 +14,7 @@ public class UserMapper {
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
                 .balance(user.getBalance())
+                .isActive(user.getIsActive() != null ? user.getIsActive() : true)
                 .build();
     }
 }

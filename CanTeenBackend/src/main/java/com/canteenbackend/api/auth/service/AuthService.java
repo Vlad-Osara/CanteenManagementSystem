@@ -44,6 +44,11 @@ public class AuthService {
     private final EmailService emailService;
 
     public UserDTO login(LoginRequest loginRequest, HttpServletRequest httpRequest) {
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new BadRequestException("Tên tài khoản hoặc mật khẩu không chính xác!"));
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new BadRequestException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên!");
+        }
         // 1. Xác thực tài khoản (Spring Security sẽ tự gọi CustomUserDetailsService ngầm)
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
@@ -53,12 +58,6 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
-
-        // 3. TỐI ƯU TẠI ĐÂY: Thay vì tìm lại trong DB, lấy thẳng CustomUserDetails từ kết quả authenticate trên RAM
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        // 4. Nếu UserMapper của bạn nhận vào Entity User, lúc này mới cần một lệnh findById (tìm theo ID luôn nhanh hơn tìm theo String username)
-        User user = userRepository.get(userDetails.getId());
 
         return userMapper.toUserDTO(user);
     }
@@ -98,6 +97,7 @@ public class AuthService {
                 .phoneNumber(registerRequest.getPhoneNumber())
                 .role(Role.CUSTOMER)
                 .balance(BigDecimal.ZERO)
+                .isActive(true)
                 .build();
 
         User savedUser = userRepository.save(user);

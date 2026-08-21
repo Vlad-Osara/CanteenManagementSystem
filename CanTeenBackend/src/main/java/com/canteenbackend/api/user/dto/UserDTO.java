@@ -16,4 +16,5 @@ public class UserDTO extends BaseDTO {
     private String phoneNumber;
     private BigDecimal balance;
     private String role;
+    private Boolean isActive;
 }

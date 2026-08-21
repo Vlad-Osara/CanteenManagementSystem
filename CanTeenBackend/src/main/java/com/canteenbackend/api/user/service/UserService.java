@@ -85,6 +85,7 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
                 .phoneNumber(userStoreRequest.getPhoneNumber())
                 .role(userStoreRequest.getRole())
                 .balance(BigDecimal.ZERO)
+                .isActive(true)
                 .build();
         return userMapper.toUserDTO(userRepository.save(user));
     }
@@ -155,12 +156,17 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
             finalRole = userUpdateRequest.getRole() != null ? userUpdateRequest.getRole() : targetUser.getRole();
         }
         BigDecimal finalBalance = isAdmin ? userUpdateRequest.getBalance() : targetUser.getBalance();
+        Boolean finalIsActive = targetUser.getIsActive();
+        if (isAdmin && userUpdateRequest.getIsActive() != null) {
+            finalIsActive = userUpdateRequest.getIsActive();
+        }
         // 4. Cập nhật dữ liệu
         targetUser.setFullName(userUpdateRequest.getFullName());
         targetUser.setEmail(userUpdateRequest.getEmail());
         targetUser.setPhoneNumber(userUpdateRequest.getPhoneNumber());
         targetUser.setRole(finalRole);
         targetUser.setBalance(finalBalance);
+        targetUser.setIsActive(finalIsActive);
 
         // 4. Xử lý logic mật khẩu
         String newPassword = userUpdateRequest.getNewPassword();
@@ -178,25 +184,26 @@ public class UserService extends RestfullService<UserDTO, UserGetRequest, UserSt
 
     @Override
     public UserDTO destroy(UUID id) {
-        User actor = securityUtils.getCurrentUserEntity();
-        boolean isAdmin = actor.getRole() == Role.ADMIN;
-        if (!isAdmin && !actor.getId().equals(id)) {
-            throw new AccessDeniedException("Bạn không có quyền chỉnh xóa tài khoản của người khác!");
-        }
-
-        String confirmPassword = request.getHeader("X-Confirm-Password");
-
-        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
-            throw new BadRequestException("Vui lòng nhập mật khẩu admin!");
-        }
-        if (!passwordEncoder.matches(confirmPassword, actor.getPassword())) {
-            throw new BadRequestException("Mật khẩu xác thực của admin không chính xác!");
-        }
-
-        User targetUser = userRepository.get(id);
-        if (targetUser.getRole() == Role.ADMIN) {
-            throw new BadRequestException("Không thể xóa tài khoản Quản trị viên (Admin) để đảm bảo an toàn hệ thống!");
-        }
-        return userMapper.toUserDTO(userRepository.delete(id));
+//        User actor = securityUtils.getCurrentUserEntity();
+//        boolean isAdmin = actor.getRole() == Role.ADMIN;
+//        if (!isAdmin && !actor.getId().equals(id)) {
+//            throw new AccessDeniedException("Bạn không có quyền chỉnh xóa tài khoản của người khác!");
+//        }
+//
+//        String confirmPassword = request.getHeader("X-Confirm-Password");
+//
+//        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+//            throw new BadRequestException("Vui lòng nhập mật khẩu admin!");
+//        }
+//        if (!passwordEncoder.matches(confirmPassword, actor.getPassword())) {
+//            throw new BadRequestException("Mật khẩu xác thực của admin không chính xác!");
+//        }
+//
+//        User targetUser = userRepository.get(id);
+//        if (targetUser.getRole() == Role.ADMIN) {
+//            throw new BadRequestException("Không thể xóa tài khoản Quản trị viên (Admin) để đảm bảo an toàn hệ thống!");
+//        }
+//        return userMapper.toUserDTO(userRepository.delete(id));
+        throw new BadRequestException("Chức năng xóa vĩnh viễn tài khoản đã được đóng để bảo toàn dữ liệu đơn hàng và giao dịch. Vui lòng sử dụng tính năng Khóa tài khoản trong mục Sửa!");
     }
 }

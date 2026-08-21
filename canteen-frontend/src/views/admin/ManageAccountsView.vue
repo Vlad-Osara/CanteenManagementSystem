@@ -45,6 +45,7 @@
               <th>Liên hệ</th>
               <th>Vai trò</th>
               <th>Số dư ví</th>
+              <th class="text-center">Trạng thái</th>
               <th class="text-end pe-4">Thao tác</th>
             </tr>
           </thead>
@@ -64,6 +65,12 @@
                 </span>
               </td>
               <td class="fw-extrabold text-primary">{{ formatVND(user.balance) }}</td>
+              <td>
+                <span :class="['badge rounded-pill px-3 py-2', user.isActive !== false ? 'bg-success text-white' : 'bg-danger text-white']">
+                  <i :class="[user.isActive !== false ? 'bi bi-check-circle-fill' : 'bi bi-lock-fill', 'me-1']"></i>
+                  {{ user.isActive !== false ? 'Đang hoạt động' : 'Đã bị khóa' }}
+                </span>
+              </td>
               <td class="text-end pe-4">
                 <button 
                   v-if="user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN' || user.id === authStore.user?.id" 
@@ -71,16 +78,6 @@
                   @click="openEditModal(user)"
                   title="Chỉnh sửa tài khoản">
                   <i class="bi bi-pencil-square me-1"></i> Sửa
-                </button>
-                <span v-else class="badge bg-light text-muted border me-2 py-2 px-2" title="Không thể sửa Admin khác">
-                  <i class="bi bi-shield-lock"></i> Khóa
-                </span>
-                <button 
-                  v-if="user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN'" 
-                  class="btn btn-sm btn-light text-danger rounded-2" 
-                  @click="deleteUser(user.id)"
-                  title="Xóa tài khoản">
-                  <i class="bi bi-trash me-1"></i> Xóa
                 </button>
                 <span v-else class="badge bg-light text-secondary border py-2 px-2" title="Tài khoản Quản trị được bảo vệ">
                   <i class="bi bi-shield-shaded text-danger"></i> Bảo vệ
@@ -187,6 +184,25 @@
                   <i class="bi bi-exclamation-circle me-1"></i> {{ fieldErrors.password }}
                 </div>
               </div>
+
+              <div class="mb-3 p-3 rounded-3 border" :class="form.isActive ? 'bg-light' : 'bg-danger bg-opacity-10 border-danger'" v-if="isEdit">
+                <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
+                  <label class="form-check-label fw-bold mb-0 cursor-pointer" for="activeSwitch">
+                    <i :class="[form.isActive ? 'bi bi-check-circle-fill text-success' : 'bi bi-lock-fill text-danger', 'me-1 fs-5']"></i>
+                    Trạng thái tài khoản: 
+                    <span :class="form.isActive ? 'text-success' : 'text-danger'">
+                      {{ form.isActive ? 'Đang hoạt động (Cho phép đăng nhập)' : 'Đang bị khóa (Chặn đăng nhập)' }}
+                    </span>
+                  </label>
+                  <input 
+                    class="form-check-input fs-4 cursor-pointer ms-auto" 
+                    type="checkbox" 
+                    role="switch" 
+                    id="activeSwitch"
+                    v-model="form.isActive"
+                  />
+                </div>
+              </div>
               <!-- Admin's Confirmation Password -->
               <div class="mb-3 pt-3 border-top" v-if="isEdit">
                 <label class="form-label fw-bold small text-danger">
@@ -251,7 +267,8 @@ const form = reactive({
   role: 'CUSTOMER',
   balance: 0,
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  isActive: true
 });
 
 onMounted(() => {
@@ -321,6 +338,7 @@ const openEditModal = (u) => {
   form.balance = u.balance || 0;
   form.password = '';
   form.confirmPassword = '';
+  form.isActive = u.isActive !== undefined ? u.isActive : true;
   errorMsg.value = '';
   showModal();
 };
@@ -337,6 +355,7 @@ const saveUser = async () => {
         phoneNumber: form.phoneNumber?.trim() || undefined,
         role: form.role,
         balance: form.balance,
+        isActive: form.isActive,
         confirmPassword: form.confirmPassword
       };
       if (form.password && form.password.trim() !== '') {
@@ -358,23 +377,23 @@ const saveUser = async () => {
   }
 };
 
-const deleteUser = async (id) => {
-  const adminPassword = prompt('XÁC THỰC BẢO MẬT:\nVui lòng nhập mật khẩu tài khoản Quản trị viên của bạn để xác nhận xóa vĩnh viễn:');
-  if (!adminPassword) return;
+// const deleteUser = async (id) => {
+//   const adminPassword = prompt('XÁC THỰC BẢO MẬT:\nVui lòng nhập mật khẩu tài khoản Quản trị viên của bạn để xác nhận xóa vĩnh viễn:');
+//   if (!adminPassword) return;
 
-  try {
-    // Gửi mật khẩu qua Header an toàn
-    await api.delete(`/api/admin/account/${id}`, {
-      headers: {
-        'X-Confirm-Password': adminPassword  // Gửi mật khẩu xác thực qua header để xác nhận quyền xóa
-      }
-    });
-    alert('Xóa tài khoản thành công!');
-    await fetchUsers();
-  } catch (e) {
-    alert(e.customMessage || 'Mật khẩu xác thực không đúng hoặc không thể xóa tài khoản!');
-  }
-};
+//   try {
+//     // Gửi mật khẩu qua Header an toàn
+//     await api.delete(`/api/admin/account/${id}`, {
+//       headers: {
+//         'X-Confirm-Password': adminPassword  // Gửi mật khẩu xác thực qua header để xác nhận quyền xóa
+//       }
+//     });
+//     alert('Xóa tài khoản thành công!');
+//     await fetchUsers();
+//   } catch (e) {
+//     alert(e.customMessage || 'Mật khẩu xác thực không đúng hoặc không thể xóa tài khoản!');
+//   }
+// };
 
 const showModal = () => {
   const el = document.getElementById('userModal');

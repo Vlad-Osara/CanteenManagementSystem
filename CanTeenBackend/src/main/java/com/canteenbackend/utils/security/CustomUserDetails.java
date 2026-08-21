@@ -16,6 +16,7 @@ public class CustomUserDetails implements UserDetails {
     private final UUID id; // <--- Trường quan trọng nhất để chống IDOR không tốn Query
     private final String username;
     private final String password;
+    private final boolean isActive;
     private final Collection<? extends GrantedAuthority> authorities;
 
     // Constructor map từ Entity User của bạn sang CustomUserDetails
@@ -23,6 +24,7 @@ public class CustomUserDetails implements UserDetails {
         this.id = user.getId();
         this.username = user.getUsername(); // hoặc user.getEmail() tùy bạn cấu hình đăng nhập bằng gì
         this.password = user.getPassword();
+        this.isActive = !Boolean.FALSE.equals(user.getIsActive());
         // Giả sử bạn lưu Role dạng String trong Entity (Ví dụ: "ADMIN", "USER")
         this.authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
@@ -54,5 +56,7 @@ public class CustomUserDetails implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() {
+        return this.isActive; //  Nếu isActive = false -> Spring Security chặn đăng nhập
+    }
 }

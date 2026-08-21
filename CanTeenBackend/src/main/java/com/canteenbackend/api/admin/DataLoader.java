@@ -36,6 +36,7 @@ public class DataLoader implements CommandLineRunner {
                     .phoneNumber("0901234567")
                     .role(Role.ADMIN)
                     .balance(new BigDecimal("1000000"))
+                    .isActive(true)
                     .build());
         }
 
@@ -48,6 +49,7 @@ public class DataLoader implements CommandLineRunner {
                     .phoneNumber("0907654321")
                     .role(Role.STAFF)
                     .balance(BigDecimal.ZERO)
+                    .isActive(true)
                     .build());
         }
 
@@ -60,6 +62,7 @@ public class DataLoader implements CommandLineRunner {
                     .phoneNumber("0912345678")
                     .role(Role.CUSTOMER)
                     .balance(new BigDecimal("500000"))
+                    .isActive(true)
                     .build());
         }
 

@@ -40,4 +40,6 @@ public class UserUpdateRequest {
     private String newPassword;
 
     private Role role;
+
+    private Boolean isActive;
 }
